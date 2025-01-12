@@ -1,0 +1,10 @@
+{
+    "domain": "allowance_tracker",
+    "name": "Allowance Tracker",
+    "version": "1.0.0",
+    "documentation": "https://github.com/yourgithub/allowance_tracker",
+    "dependencies": [],
+    "codeowners": ["@yourgithub"],
+    "requirements": ["sqlite3"]
+  }
+  
