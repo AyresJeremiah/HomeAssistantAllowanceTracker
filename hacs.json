@@ -1,0 +1,9 @@
+{
+    "name": "Allowance Tracker",
+    "content_in_root": false,
+    "domains": ["allowance_tracker"],
+    "country": "US",
+    "homeassistant": "2021.6.0",
+    "iot_class": "Local Polling"
+  }
+  
