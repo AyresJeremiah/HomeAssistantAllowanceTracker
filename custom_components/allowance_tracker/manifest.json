@@ -2,7 +2,7 @@
     "domain": "allowance_tracker",
     "name": "Allowance Tracker",
     "version": "1.0.0",
-    "documentation": "https://github.com/yourgithub/allowance_tracker",
+    "documentation": "https://github.com/AyresJeremiah/HomeAssistantAllowanceTracker",
     "dependencies": [],
     "codeowners": ["@yourgithub"],
     "requirements": ["sqlite3"]
