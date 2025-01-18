@@ -56,12 +56,10 @@ class AllowanceTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO allowances (user, balance, last_updated)
-            VALUES (?, ?, ?)
-            ON CONFLICT(user) DO UPDATE SET
-                balance = balance + excluded.balance,
-                last_updated = excluded.last_updated
-        """, (user, amount, datetime.now().isoformat()))
+            UPDATE allowances
+            SET balance = balance + ?, last_updated = ?
+            WHERE user = ?
+        """, (amount, datetime.now().isoformat(), user))
         conn.commit()
         conn.close()
 
