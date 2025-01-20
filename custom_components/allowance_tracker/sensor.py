@@ -4,15 +4,22 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     """Set up Allowance Tracker sensors."""
     user = config.get("user")
     tracker = hass.data["allowance_tracker"]
-    async_add_entities([AllowanceSensor(tracker, user)], True)
+    sensor = AllowanceSensor(tracker, user, hass)
+    async_add_entities([sensor], True)
 
 class AllowanceSensor(Entity):
     """Representation of an Allowance Tracker sensor."""
 
-    def __init__(self, tracker, user):
+    def __init__(self, tracker, user, hass):
         self.tracker = tracker
         self.user = user
+        self.hass = hass
         self._state = None
+
+        # Register the sensor in hass.data for real-time updates
+        if "allowance_tracker_sensors" not in self.hass.data:
+            self.hass.data["allowance_tracker_sensors"] = {}
+        self.hass.data["allowance_tracker_sensors"][user] = self
 
     @property
     def name(self):
@@ -32,3 +39,8 @@ class AllowanceSensor(Entity):
     def update(self):
         """Fetch the latest balance from the AllowanceTracker."""
         self._state = self.tracker.get_balance(self.user)
+
+    def update_balance(self):
+        """Update the sensor state when called externally."""
+        self._state = self.tracker.get_balance(self.user)
+        self.async_write_ha_state()

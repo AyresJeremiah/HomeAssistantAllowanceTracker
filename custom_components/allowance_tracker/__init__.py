@@ -8,6 +8,7 @@ DOMAIN = "allowance_tracker"
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Allowance Tracker component."""
     hass.data[DOMAIN] = AllowanceTracker(hass)
+    hass.data["allowance_tracker_sensors"] = {}  # Store references to sensors
     hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
 
     # Register services
@@ -62,6 +63,8 @@ class AllowanceTracker:
         """, (amount, datetime.now().isoformat(), user))
         conn.commit()
         conn.close()
+        # Trigger sensor update
+        self.update_sensor(user)
 
     def deduct_allowance(self, user, amount):
         """Deduct allowance from a user."""
@@ -74,6 +77,8 @@ class AllowanceTracker:
         """, (amount, datetime.now().isoformat(), user))
         conn.commit()
         conn.close()
+        # Trigger sensor update
+        self.update_sensor(user)
 
     def get_balance(self, user):
         """Get the balance for a user."""
@@ -83,3 +88,9 @@ class AllowanceTracker:
         result = cursor.fetchone()
         conn.close()
         return result[0] if result else 0.0
+
+    def update_sensor(self, user):
+        """Trigger an update for the corresponding sensor."""
+        sensor = self.hass.data["allowance_tracker_sensors"].get(user)
+        if sensor:
+            sensor.update_balance()
