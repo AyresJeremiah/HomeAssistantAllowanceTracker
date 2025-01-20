@@ -1,0 +1,1 @@
+DOMAIN = "allowance_tracker"

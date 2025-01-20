@@ -1,12 +1,16 @@
 from homeassistant.core import HomeAssistant
 import logging
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import ConfigType
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "allowance_tracker"
-
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Allowance Tracker component."""
+    if DOMAIN not in config:
+        return True
+
     hass.data[DOMAIN] = AllowanceTracker(hass)
     hass.data["allowance_tracker_sensors"] = {}  # Store references to sensors
     hass.helpers.discovery.load_platform("sensor", DOMAIN, {}, config)
@@ -28,6 +32,24 @@ async def async_setup(hass: HomeAssistant, config: dict):
     return True
 
 
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up Allowance Tracker from a config entry."""
+    hass.data.setdefault(DOMAIN, AllowanceTracker(hass))
+    return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Unload a config entry."""
+    tracker = AllowanceTracker(hass)
+    hass.data[DOMAIN] = tracker
+
+    # Load kids from entry options
+    kids = entry.options.get("kids", [])
+    tracker.set_kids(kids)
+    
+    return True
+
+
 import sqlite3
 from datetime import datetime
 
@@ -42,13 +64,26 @@ class AllowanceTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS allowances (
-                id INTEGER PRIMARY KEY,
-                user TEXT NOT NULL,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user TEXT NOT NULL UNIQUE,
                 balance REAL NOT NULL DEFAULT 0,
                 last_updated TEXT NOT NULL
             )
         """)
+        conn.commit()
+        conn.close()
+
+    def set_kids(self, kids):
+        """Update the list of kids and initialize their balances if necessary."""
+        self.kids = kids
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        for kid in kids:
+            cursor.execute("""
+                INSERT INTO allowances (user, balance, last_updated)
+                VALUES (?, ?, datetime('now'))
+                ON CONFLICT(user) DO NOTHING
+            """, (kid, 0))
         conn.commit()
         conn.close()
 
