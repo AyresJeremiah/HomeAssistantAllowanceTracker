@@ -1,1 +1,3 @@
 .idea
+.vscode
+custom_components/allowance_tracker/__pycache__

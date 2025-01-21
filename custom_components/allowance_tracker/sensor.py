@@ -2,10 +2,19 @@ from homeassistant.helpers.entity import Entity
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up Allowance Tracker sensors."""
-    user = config.get("user")
+    if discovery_info is None:
+        return
+
+    kids = discovery_info.get("kids", [])
     tracker = hass.data["allowance_tracker"]
-    sensor = AllowanceSensor(tracker, user, hass)
-    async_add_entities([sensor], True)
+
+    sensors = []
+    for kid in kids:
+        sensor = AllowanceSensor(tracker, kid, hass)
+        sensors.append(sensor)
+
+    async_add_entities(sensors, True)
+
 
 class AllowanceSensor(Entity):
     """Representation of an Allowance Tracker sensor."""
@@ -32,11 +41,16 @@ class AllowanceSensor(Entity):
         return self._state
 
     @property
+    def unique_id(self):
+        """Return a unique ID for the sensor."""
+        return f"allowance_tracker_{self.user}"
+
+    @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
         return "USD"
 
-    def update(self):
+    async def async_update(self):
         """Fetch the latest balance from the AllowanceTracker."""
         self._state = self.tracker.get_balance(self.user)
 

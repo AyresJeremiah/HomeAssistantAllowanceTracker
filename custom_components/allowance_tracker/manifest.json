@@ -2,9 +2,10 @@
   "domain": "allowance_tracker",
   "name": "Allowance Tracker",
   "version": "1.0.1",
+  "config_flow": true,
   "documentation": "https://github.com/AyresJeremiah/HomeAssistantAllowanceTracker",
   "requirements": [],
   "dependencies": [],
   "codeowners": ["@AyresJeremiah"],
-  "config_flow": true
+  "single_config_entry": true
 }
