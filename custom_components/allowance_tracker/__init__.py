@@ -43,18 +43,32 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Allowance Tracker from a config entry."""
     _LOGGER.debug("Setting up Allowance Tracker from config entry")
+
+    # Initialize AllowanceTracker
     tracker = AllowanceTracker(hass)
     hass.data[DOMAIN] = tracker
 
-    # Load initial list of kids from options
+    # Load kids from the database or config entry
     kids = entry.options.get("kids", [])
-    _LOGGER.debug("Loaded kids from options: %s", kids)
+    if not kids:
+        kids = tracker.get_all_kids()  # Retrieve kids from the database
+    _LOGGER.debug("Loaded kids: %s", kids)
+
+    # Set kids in the tracker
     tracker.set_kids(kids)
+
+    # Prepare discovery info for the sensor platform
+    discovery_info = {"kids": kids}
+    hass.data["allowance_tracker_sensors"] = {}
+
+    # Reload the sensor platform
+    hass.helpers.discovery.load_platform("sensor", DOMAIN, discovery_info, entry.options)
 
     # Listen for options updates
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
     return True
+
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
     """Handle options updates."""
