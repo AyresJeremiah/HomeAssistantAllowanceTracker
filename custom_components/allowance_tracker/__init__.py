@@ -136,6 +136,22 @@ class AllowanceTracker:
         """)
         conn.commit()
         conn.close()
+        
+    def get_all_kids(self):
+        """Retrieve all kids from the database."""
+        _LOGGER.debug("Retrieving all kids from the database")
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Query all unique users (kids) from the allowances table
+        cursor.execute("SELECT user FROM allowances")
+        results = cursor.fetchall()
+        conn.close()
+
+        # Extract just the names from the results
+        kids = [row[0] for row in results]
+        _LOGGER.debug("Kids retrieved from database: %s", kids)
+        return kids
 
     def set_kids(self, kids):
         """Update the list of kids and initialize their balances if necessary."""
